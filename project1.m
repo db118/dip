@@ -81,7 +81,8 @@ figure, imshow(image14)
 imwrite(image14, 'homework1_14.pnm')
 
 
-x = input('Enter any key to close all figures: ')
+disp('Enter any key to close all figures: ')
+pause
 close all 
 
 
