@@ -1,23 +1,30 @@
-function project2(varargin);
+function project3(varargin);
 global current_image
 global preview_image
 global open_button
 global save_button
 global preview_button
 global apply_button
-global filter_popup
+global ffilter_popup
+global ffilter_title
+global sfilter_popup
+global sfilter_title
 global bright_slider
 global bright_title
 global bright_value
 global contrast_slider
 global contrast_title
 global contrast_value
-global orig_bright
-global orig_contrast
+global ftype
+global filter_type
+global filter_type_title
+global radius_slider
+global radius_title
+global radius_value
 global FIG
 global FIG2
 global FIG3
-function_name='project2';
+function_name='project3';
 if nargin<1,
     action='initialize';
 else
@@ -26,7 +33,7 @@ end;
 
 if strcmp(action,'initialize'),
     figNumber=figure( ...
-        'Name','Project 2', ...
+        'Name','Project 3', ...
         'NumberTitle','off', ...
         'Position',[100 100 800 600], ...
         'Visible','off');
@@ -42,7 +49,7 @@ if strcmp(action,'initialize'),
     btnWid=0.15;
     btnHt=0.06;
     % Spacing between the button and the next command's label
-    spacing=0.03*0.5;
+    spacing=0.03*0.75;
 %====================================
     % The OPEN IMAGE button
     btnNumber=1;
@@ -50,7 +57,7 @@ if strcmp(action,'initialize'),
     labelStr='Open Image';
     callbackStr=strcat(function_name,'(''open'')');  
     % Generic button information
-    btnPos=[left yPos-btnHt btnWid btnHt];
+    btnPos=[left yPos-btnHt+0.03 btnWid btnHt-0.0001];
     open_button = uicontrol( ...
         'Style','pushbutton', ...
         'Units','normalized', ...
@@ -64,7 +71,7 @@ if strcmp(action,'initialize'),
     labelStr='Save Image';
     callbackStr=strcat(function_name,'(''save'')');
      % Generic button information
-    btnPos=[left yPos-btnHt btnWid btnHt];
+    btnPos=[left yPos-btnHt+0.03 btnWid btnHt-0.0001];
     save_button = uicontrol( ...
         'Style','pushbutton', ...
         'Units','normalized', ...
@@ -77,7 +84,7 @@ if strcmp(action,'initialize'),
     yPos= top-(btnNumber-1)*(btnHt+spacing);
     labelStr='Apply Changes';
     callbackStr=strcat(function_name,'(''apply'')');
-    btnPos = [left yPos-btnHt btnWid btnHt];
+    btnPos = [left yPos-btnHt+0.03 btnWid btnHt-0.0001];
     apply_button = uicontrol(...
         'Style', 'pushbutton', ...
         'Units', 'normalized',...
@@ -91,7 +98,7 @@ if strcmp(action,'initialize'),
     yPos= top-(btnNumber-1)*(btnHt+spacing);
     labelStr='Preview';
     callbackStr=strcat(function_name,'(''preview'')');
-    btnPos = [left yPos-btnHt btnWid btnHt];
+    btnPos = [left yPos-btnHt+0.03 btnWid btnHt-0.0001];
     preview_button = uicontrol(...
         'Style', 'pushbutton', ...
         'Units', 'normalized',...
@@ -100,22 +107,25 @@ if strcmp(action,'initialize'),
         'Callback', callbackStr);
 
 %====================================
-    % The Filter Popup
+    % The spatial Filter Popup
     btnNumber= 5;
     yPos=top-(btnNumber-1)*(btnHt+spacing);
     labelStr= {'3x3 Low Pass','5x5 Low Pass','7x7 Low Pass','9x9 Low Pass'...
-               'HighPass','HighBoost','Histogram equalization'...
-               'Freq Low Pass', 'Freq High Pass', 'Freq HighBoost'...
-               'Freq Band-Pass', 'Freq Band-Stop'};
-    callbackStr=strcat(function_name,'(''filter'')');
+               'HighPass','HighBoost','Histogram equalization'};
+    callbackStr=strcat(function_name,'(''sfilter'')');
      % Generic Popup information
-    btnPos=[left yPos-btnHt btnWid btnHt];
-    filter_popup = uicontrol( ...
+    btnPos=[left yPos-btnHt+0.005 btnWid btnHt];
+    sfilter_popup = uicontrol( ...
         'Style','popupmenu', ...
         'Units','normalized', ...
         'Position',btnPos, ...
         'String',labelStr, ...
         'Callback',callbackStr);
+   sfilter_title = uicontrol(...
+        'Style','text',...
+        'Units','normalized', ...
+        'Position',[left (yPos-btnHt+0.065) btnWid btnHt-0.02],...
+        'String','Spatial Filters');
 
 %====================================
     % The Bright slider
@@ -162,7 +172,71 @@ if strcmp(action,'initialize'),
         'Units','normalized', ...
         'Position',[left (yPos-btnHt+.08) btnWid btnHt-0.04],...
         'String','Contrast');
+%====================================
+    % The filter type Popup
+    btnNumber= 8;
+    yPos=top-(btnNumber-1)*(btnHt+spacing);
+    labelStr= {'Ideal','Gaussian','Butterworth'};
+    callbackStr=strcat(function_name,'(''ftype'')');
+     % Generic Popup information
+    btnPos=[left yPos-btnHt-0.01 btnWid btnHt+0.02];
+    ftype = uicontrol( ...
+        'Style','popupmenu', ...
+        'Units','normalized', ...
+        'Position',btnPos, ...
+        'String',labelStr, ...
+        'Callback',callbackStr);
+        % Add a text uicontrol to label the slider.
+    filter_type_title = uicontrol(...
+        'Style','text',...
+        'Units','normalized', ...
+        'Position',[left (yPos-btnHt+0.065) btnWid btnHt-0.02],...
+        'String','Filter Types');
     
+%====================================
+    % The Radius slider
+    btnNumber=9;
+    yPos=top-(btnNumber-1)*(btnHt+spacing);
+    callbackStr = strcat(function_name,'(''radius'')');
+     % Generic button information
+    btnPos=[left yPos-btnHt btnWid btnHt];
+    radius_slider = uicontrol( ...
+        'Style','slider', ...
+        'Units','normalized', ...
+        'Position',btnPos, ...
+        'Min', 0 ,...
+        'Max', 100 ,...
+        'Value', 10,...
+        'Callback',callbackStr);
+    radius_value = floor(get(radius_slider,'Value'));
+    % Add a text uicontrol to label the slider.
+    radius_title = uicontrol(...
+        'Style','text',...
+        'Units','normalized', ...
+        'Position',[left (yPos-btnHt+.08) btnWid btnHt-0.04],...
+        'String','Cutoff Frequency radius');
+
+%====================================
+    % The Frequencey Filter Popup
+    btnNumber= 10;
+    yPos=top-(btnNumber-1)*(btnHt+spacing);
+    labelStr= {'Freq Low Pass', 'Freq High Pass', 'Freq HighBoost'...
+               'Freq Band-Pass', 'Freq Band-Stop','Homomorphic'};
+    callbackStr=strcat(function_name,'(''ffilter'')');
+     % Generic Popup information
+    btnPos=[left yPos-btnHt+0.02 btnWid btnHt-0.02];
+    ffilter_popup = uicontrol( ...
+        'Style','popupmenu', ...
+        'Units','normalized', ...
+        'Position',btnPos, ...
+        'String',labelStr, ...
+        'Callback',callbackStr);
+    % Add a text uicontrol to label the slider.
+    ffilter_title = uicontrol(...
+        'Style','text',...
+        'Units','normalized', ...
+        'Position',[left (yPos-btnHt+0.06) btnWid btnHt-0.02],...
+        'String','Frequency Filters');
     % Now uncover the figure
     set(figNumber,'Visible','on');
     
@@ -201,25 +275,24 @@ elseif strcmp(action,'apply'),
     title('Current Image');
 elseif strcmp(action,'bright')
     bright_value = floor(get(bright_slider,'Value'));
-    bright = bright_value/255;
-    if (bright >= 0.5)
-        FIG2(:,:,1) = FIG2(:,:,1) + 1;
-    end
-    if (bright < 0.5)
-        FIG2(:,:,1) = FIG2(:,:,1) - 1;
+    difference = mean2(FIG) - bright_value;
+    if (difference < 0)
+        FIG2(:,:,1) = FIG(:,:,1) + -1*difference;
+    else
+        FIG2(:,:,1) = FIG(:,:,1) - difference;
     end
 elseif strcmp(action,'contrast')
     contrast_value = floor(get(contrast_slider,'Value'));
     contrast = contrast_value/255;
     if (contrast >= 0.5)
-        FIG2(:,:,1) = imadjust(FIG2(:,:,1),[0 2*contrast-1],[0 1]); 
+        FIG2(:,:,1) = imadjust(FIG(:,:,1),[0 contrast],[0, 1]); 
     end
     if (contrast < 0.5)
-        FIG2(:,:,1) = imadjust(FIG2(:,:,1),[2*contrast 1],[0 1]); 
+        FIG2(:,:,1) = imadjust(FIG(:,:,1),[contrast 1],[0, 1]); 
     end
-elseif strcmp(action,'filter')
-    value = get(filter_popup,'Value');
-    string_list = get(filter_popup,'String');
+elseif strcmp(action,'sfilter')
+    value = get(sfilter_popup,'Value');
+    string_list = get(sfilter_popup,'String');
     popup_string = string_list{value};
     if strcmp(popup_string,  '3x3 Low Pass')
         FIG2(:,:,1) = imfilter(FIG(:,:,1), ones(3,3)/9);
@@ -237,15 +310,50 @@ elseif strcmp(action,'filter')
         FIG2(:,:,1) = imadd(FIG(:,:,1), FIG3(:,:,1))
     elseif strcmp(popup_string, 'Histogram equalization')
         FIG2(:,:,1) = histeq(FIG(:,:,1))
-    elseif strcmp(popup_string,  'Freq Low Pass')
-        
-    elseif strcmp(popup_string,  'Freq High Pass')
-        
-    elseif strcmp(popup_string,  'Freq HighBoost')
-        
-    elseif strcmp(popup_string,  'Freq Band-Pass')
-        
-    elseif strcmp(popup_string,  'Freq Band-Stop')
     end
+        
+elseif strcmp(action,'ffilter')
+    value = get(ffilter_popup,'Value');
+    string_list = get(ffilter_popup,'String');
+    popup_string = string_list{value};
+    if strcmp(popup_string,'Homomophoric')
+        FIG2(:,:,1) = homomorphic(FIG(:,:,1),radius_value);
+    else
+        picture = FIG(:,:,1);
+        [height, width]=size(picture);
+        picture2 =zeros(height,width);
+        for x=1:height
+           for y=1:width
+              picture2(x,y)=picture(x,y)*((-1)^(x+y));
+           end
+        end
+        freq = fft2(picture2);
+        if strcmp(popup_string,  'Freq Low Pass')
+            freq2 = lowpass_centered_freq(freq,radius_value, filter_type);
+            recovered = abs(real(ifft2(freq2)));
+        elseif strcmp(popup_string, 'Freq High Pass')
+            freq2 = highpas_centered_freq(freq,radius_value, filter_type);
+            recovered = abs(real(ifft2(freq2)));
+        elseif strcmp(popup_string, 'Freq HighBoost')
+            freq2 = highboost_centered_freq(freq,radius_value, filter_type);
+            recovered = abs(real(ifft2(freq2)));
+        elseif strcmp(popup_string, 'Freq Band-Pass')
+            freq2 = bandpass_centered_freq(freq,radius_value, filter_type);
+            recovered = abs(real(ifft2(freq2)));
+        elseif strcmp(popup_string, 'Freq Band-Stop')
+            freq2 = bandstop_centered_freq(freq,radius_value, filter_type);
+            recovered = abs(real(ifft2(freq2)));
+        end
+    end
+    FIG2(:,:,1) = recovered;
     
+elseif strcmp(action,'ftype')
+    value = get(ftype,'Value');
+    string_list = get(ftype,'String');
+    filter_type = string_list{value};
+
+elseif strcmp(action,'radius')
+    radius_value = get(radius_slider,'Value')
+
+
 end;

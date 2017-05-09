@@ -104,9 +104,7 @@ if strcmp(action,'initialize'),
     btnNumber= 5;
     yPos=top-(btnNumber-1)*(btnHt+spacing);
     labelStr= {'3x3 Low Pass','5x5 Low Pass','7x7 Low Pass','9x9 Low Pass'...
-               'HighPass','HighBoost','Histogram equalization'...
-               'Freq Low Pass', 'Freq High Pass', 'Freq HighBoost'...
-               'Freq Band-Pass', 'Freq Band-Stop'};
+               'HighPass','HighBoost','Histogram equalization'};
     callbackStr=strcat(function_name,'(''filter'')');
      % Generic Popup information
     btnPos=[left yPos-btnHt btnWid btnHt];
@@ -201,21 +199,20 @@ elseif strcmp(action,'apply'),
     title('Current Image');
 elseif strcmp(action,'bright')
     bright_value = floor(get(bright_slider,'Value'));
-    bright = bright_value/255;
-    if (bright >= 0.5)
-        FIG2(:,:,1) = FIG2(:,:,1) + 1;
-    end
-    if (bright < 0.5)
-        FIG2(:,:,1) = FIG2(:,:,1) - 1;
+    difference = mean2(FIG) - bright_value;
+    if (difference < 0)
+        FIG2(:,:,1) = FIG(:,:,1) + -1*difference;
+    else
+        FIG2(:,:,1) = FIG(:,:,1) - difference;
     end
 elseif strcmp(action,'contrast')
     contrast_value = floor(get(contrast_slider,'Value'));
     contrast = contrast_value/255;
     if (contrast >= 0.5)
-        FIG2(:,:,1) = imadjust(FIG2(:,:,1),[0 2*contrast-1],[0 1]); 
+        FIG2(:,:,1) = imadjust(FIG(:,:,1),[0 contrast],[0, 1]); 
     end
     if (contrast < 0.5)
-        FIG2(:,:,1) = imadjust(FIG2(:,:,1),[2*contrast 1],[0 1]); 
+        FIG2(:,:,1) = imadjust(FIG(:,:,1),[contrast 1],[0, 1]); 
     end
 elseif strcmp(action,'filter')
     value = get(filter_popup,'Value');
@@ -237,15 +234,6 @@ elseif strcmp(action,'filter')
         FIG2(:,:,1) = imadd(FIG(:,:,1), FIG3(:,:,1))
     elseif strcmp(popup_string, 'Histogram equalization')
         FIG2(:,:,1) = histeq(FIG(:,:,1))
-    elseif strcmp(popup_string,  'Freq Low Pass')
-        
-    elseif strcmp(popup_string,  'Freq High Pass')
-        
-    elseif strcmp(popup_string,  'Freq HighBoost')
-        
-    elseif strcmp(popup_string,  'Freq Band-Pass')
-        
-    elseif strcmp(popup_string,  'Freq Band-Stop')
     end
     
 end;
