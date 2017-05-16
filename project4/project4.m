@@ -1,4 +1,4 @@
-function project3(varargin);
+function project4(varargin);
 global current_image
 global preview_image
 global open_button
@@ -24,7 +24,12 @@ global radius_value
 global FIG
 global FIG2
 global FIG3
-function_name='project3';
+global colors_popup
+global colors_title
+global shapes_popup
+global shapes_title
+
+function_name='project4';
 if nargin<1,
     action='initialize';
 else
@@ -38,9 +43,9 @@ if strcmp(action,'initialize'),
         'Position',[100 100 800 600], ...
         'Visible','off');
      colordef(figNumber,'white')
-     current_image = axes('Position',[0.05 0.55 0.60 0.426667]);
+     current_image = axes('Position',[0.05 0.55 0.70 0.426667]);
      title('Current');
-     preview_image =axes('Position',[0.05 0.05 0.60 0.426667]);
+     preview_image =axes('Position',[0.05 0.05 0.70 0.426667]);
      title('Previous');  
 %====================================
     % Information for all buttons
@@ -49,7 +54,7 @@ if strcmp(action,'initialize'),
     btnWid=0.15;
     btnHt=0.06;
     % Spacing between the button and the next command's label
-    spacing=0.03*0.75;
+    spacing=0.03*0.5;
 %====================================
     % The OPEN IMAGE button
     btnNumber=1;
@@ -198,7 +203,7 @@ if strcmp(action,'initialize'),
     btnNumber=9;
     yPos=top-(btnNumber-1)*(btnHt+spacing);
     callbackStr = strcat(function_name,'(''radius'')');
-     % Generic button information
+     %Generic button information
     btnPos=[left yPos-btnHt btnWid btnHt];
     radius_slider = uicontrol( ...
         'Style','slider', ...
@@ -238,7 +243,54 @@ if strcmp(action,'initialize'),
         'Position',[left (yPos-btnHt+0.06) btnWid btnHt-0.02],...
         'String','Frequency Filters');
     % Now uncover the figure
-    set(figNumber,'Visible','on');
+    set(figNumber,'Visible','on');    
+%====================================
+
+    % The colors Popup
+    btnNumber= 11;
+    yPos=top-(btnNumber-1)*(btnHt+spacing);
+    labelStr= {'Red', 'Blue', 'Green', 'Magenta','Cyan','Yellow'};
+    callbackStr=strcat(function_name,'(''colors'')');
+    btnPos=[left yPos-btnHt+0.02 btnWid btnHt-0.02];
+     % Generic Popup information
+    colors_popup = uicontrol( ...
+        'Style','popupmenu', ...
+        'Units','normalized', ...
+        'Position',btnPos, ...
+        'String',labelStr, ...
+        'Callback',callbackStr);
+    % Add a text uicontrol to label the slider.
+    colors_title = uicontrol(...
+        'Style','text',...
+        'Units','normalized', ...
+        'Position',[left (yPos-btnHt+0.06) btnWid btnHt-0.02],...
+        'String','Colors');
+    
+%====================================
+
+    % The shapes Popup
+    btnNumber= 12;
+    yPos=top-(btnNumber-1)*(btnHt+spacing);
+    labelStr= {'2x2 Square','3x3 Square','4x4 Square','5x5 Square'...
+               '6x6 Square','7x7 Square', '8x8 Square','2x4 Rectangle'...
+               '4x8 Rectangle', '8x16 rectangle', '2 radi Circle'...
+               '5 radi circle'};
+    callbackStr=strcat(function_name,'(''shapes'')');
+     % Generic Popup information
+    btnPos=[left yPos-btnHt+0.02 btnWid btnHt-0.02];
+    shapes_popup = uicontrol( ...
+        'Style','popupmenu', ...
+        'Units','normalized', ...
+        'Position',btnPos, ...
+        'String',labelStr, ...
+        'Callback',callbackStr);
+    % Add a text uicontrol to label the slider.
+    shapes_title = uicontrol(...
+        'Style','text',...
+        'Units','normalized', ...
+        'Position',[left (yPos-btnHt+0.06) btnWid btnHt-0.02],...
+        'String','Shapes');
+    
     
 elseif strcmp(action,'save'),
     save_image(FIG);
@@ -307,9 +359,9 @@ elseif strcmp(action,'sfilter')
         FIG2(:,:,1) = imfilter(FIG(:,:,1),filterhp);
     elseif strcmp(popup_string,'HighBoost')
         FIG3(:,:,1)=imfilter(imsubtract(FIG(:,:,1),25),[-1 -1 -1;-1 8 -1;-1 -1 -1]);
-        FIG2(:,:,1) = imadd(FIG(:,:,1), FIG3(:,:,1))
+        FIG2(:,:,1) = imadd(FIG(:,:,1), FIG3(:,:,1));
     elseif strcmp(popup_string, 'Histogram equalization')
-        FIG2(:,:,1) = histeq(FIG(:,:,1))
+        FIG2(:,:,1) = histeq(FIG(:,:,1));
     end
         
 elseif strcmp(action,'ffilter')
@@ -376,6 +428,37 @@ elseif strcmp(action,'ftype')
 
 elseif strcmp(action,'radius')
     radius_value = get(radius_slider,'Value')
+    
+elseif strcmp(action,'colors')
+    display('inside colors')
+    value = get(colors_popup,'Value');
+    string_list = get(colors_popup,'String');
+    popup_string = string_list{value};
+    if strcmp(popup_string,  'Red')
+    elseif strcmp(popup_string,'Green')
+    elseif strcmp(popup_string, 'Blue')
+    elseif strcmp(popup_string, 'Magenta')
+    elseif strcmp(popup_string, 'Yellow')
+    elseif strcmp(popup_string,'Cyan')
+    end
+    
+elseif strcmp(action,'shapes')
+    value = get(sfilter_popup,'Value');
+    string_list = get(sfilter_popup,'String');
+    popup_string = string_list{value};
+    if strcmp(popup_string,  '2x2 Square')
+    elseif strcmp(popup_string,'3x3 Square')
+    elseif strcmp(popup_string, '4x4 Square')
+    elseif strcmp(popup_string, '5x5 Square')       
+    elseif strcmp(popup_string, '6x6 Square')
+    elseif strcmp(popup_string,'7x7 Square')
+    elseif strcmp(popup_string, '8x8 Square')
+    elseif strcmp(popup_string,'2x4 Rectangle')
+    elseif strcmp(popup_string, '4x8 Rectangle')
+    elseif strcmp(popup_string, '8x16 rectangle')
+    elseif strcmp(popup_string,'2 radi Circle')
+    elseif strcmp(popup_string, '5 radi circle')
+    end
 
 
 end;
